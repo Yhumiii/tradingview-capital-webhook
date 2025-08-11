@@ -96,4 +96,19 @@ def close_position(deal_id: str, direction: str, size: float) -> Dict[str, Any]:
         r = client.delete("/api/v1/positions", headers=_auth_headers(), json=payload)
         r.raise_for_status()
         return r.json()
-# (Paste the capital_client.py code from the tutorial here)
+        
+def get_accounts():
+    with httpx.Client(base_url=BASE, timeout=20.0) as client:
+        r = client.get("/api/v1/accounts", headers=_auth_headers())
+        r.raise_for_status()
+        return r.json()
+
+def pick_available_account_available() -> float:
+    data = get_accounts()
+    # pick current (preferred) or first; read 'balance.available'
+    for acc in data.get("accounts", []):
+        if acc.get("preferred"):
+            return float(acc["balance"]["available"])
+    if data.get("accounts"):
+        return float(data["accounts"][0]["balance"]["available"])
+    raise RuntimeError("No accounts returned")
